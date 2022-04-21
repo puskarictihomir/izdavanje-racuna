@@ -40,11 +40,11 @@ export default function CreateReceiptModal({ isOpen, onClose, edit = false }) {
 
   const [stavkeRacuna, setStavkeRacuna] = useState([
     {
-      opis: "opis",
-      mjera: "mjera",
-      kolicina: "količina",
+      opis: "",
+      mjera: "",
+      kolicina: "",
       cijena: 0,
-      popust: "popust",
+      popust: "",
     },
   ]);
 
@@ -61,7 +61,12 @@ export default function CreateReceiptModal({ isOpen, onClose, edit = false }) {
     const { name, value } = e.target;
 
     let newArr = [...stavkeRacuna];
-    newArr[i][name] = value;
+
+    if (name === "kolicina" || name === "cijena") {
+      newArr[i][name] = +value;
+    } else {
+      newArr[i][name] = value;
+    }
 
     setStavkeRacuna(newArr);
   };
@@ -87,7 +92,31 @@ export default function CreateReceiptModal({ isOpen, onClose, edit = false }) {
     setStavkeRacuna(stavkeRacuna.filter((el, index) => index !== i));
   };
 
-  const handleSubmit = () => {};
+  const handleSubmit = () => {
+    const racun = {
+      tipUsluge: receipt.tipUsluge,
+      brojRacuna: receipt.brojRacuna,
+      prikaziPorez: false,
+      kupac: receipt.kupac,
+      adresa: receipt.adresa,
+      OIB: +receipt.OIB,
+      napomene: receipt.napomene,
+      datumRacuna: new Date(receipt.datumRacuna),
+      rokPlacanja: new Date(receipt.rokPlacanja),
+      email: receipt.email,
+      internetStranica: receipt.internetStranica,
+      iban: receipt.iban,
+      datumIsporuke: new Date(receipt.datumIsporuke),
+    };
+
+    const requestOptions = {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(racun),
+    };
+
+    fetch("api/receipt", requestOptions).then((response) => console.log("response", response));
+  };
 
   const handleDeleteReceipt = () => {};
 
@@ -129,7 +158,7 @@ export default function CreateReceiptModal({ isOpen, onClose, edit = false }) {
               </Box>
               <Box>
                 <FormLabel>OIB</FormLabel>
-                <Input onChange={(e) => handleChange(e)} value={receipt.OIB} name="OIB" />
+                <Input onChange={(e) => handleChange(e)} value={receipt.OIB} name="OIB" type="number" />
               </Box>
             </Grid>
 
@@ -175,6 +204,7 @@ export default function CreateReceiptModal({ isOpen, onClose, edit = false }) {
                           onChange={(e) => handleStavkeRacunaChange(e, i)}
                           value={stavkeRacuna[i].kolicina}
                           name="kolicina"
+                          type="number"
                         />
                       </Box>
                       <Box mr={4}>
@@ -215,15 +245,30 @@ export default function CreateReceiptModal({ isOpen, onClose, edit = false }) {
             <Grid mb={4} templateColumns="1fr 1fr 1fr">
               <Box mr={4}>
                 <FormLabel>Datum računa</FormLabel>
-                <Input onChange={(e) => handleChange(e)} value={receipt.datumRacuna} name="datumRacuna" />
+                <Input
+                  onChange={(e) => handleChange(e)}
+                  value={receipt.datumRacuna}
+                  name="datumRacuna"
+                  type="datetime-local"
+                />
               </Box>
               <Box mr={4}>
                 <FormLabel>Rok plaćanja</FormLabel>
-                <Input onChange={(e) => handleChange(e)} value={receipt.rokPlacanja} name="rokPlacanja" />
+                <Input
+                  onChange={(e) => handleChange(e)}
+                  value={receipt.rokPlacanja}
+                  name="rokPlacanja"
+                  type="datetime-local"
+                />
               </Box>
               <Box>
                 <FormLabel>Datum isporuke</FormLabel>
-                <Input onChange={(e) => handleChange(e)} value={receipt.datumIsporuke} name="datumIsporuke" />
+                <Input
+                  onChange={(e) => handleChange(e)}
+                  value={receipt.datumIsporuke}
+                  name="datumIsporuke"
+                  type="datetime-local"
+                />
               </Box>
             </Grid>
 
@@ -242,7 +287,7 @@ export default function CreateReceiptModal({ isOpen, onClose, edit = false }) {
                 </Button>
               </Flex>
             ) : (
-              <Button>Spremi</Button>
+              <Button onClick={handleSubmit}>Spremi</Button>
             )}
           </ModalFooter>
         </ModalContent>

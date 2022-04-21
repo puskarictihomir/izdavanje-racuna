@@ -12,7 +12,50 @@ datasource db {
 
 
 model Racun {
-  id        Int      @default(autoincrement()) @id
-  title     String
-  content   String
+  id Int @default(autoincrement()) @id
+  tipUsluge String
+  brojRacuna String
+  prikaziPorez Boolean
+  kupac String
+  adresa String
+  OIB Int
+  napomene String
+  datumRacuna DateTime
+  rokPlacanja DateTime
+  email String
+  internetStranica String
+  iban String
+  datumIsporuke DateTime
+  createdAt DateTime   @default(now())
+  stavkeRacuna Stavka[]
+}
+
+model Stavka {
+  id Int @default(autoincrement()) @id
+  opis String
+  mjera String
+  kolicina Int
+  cijena Int
+  popust String
+  createdAt DateTime @default(now())
+  racun Racun @relation(fields: [racunId], references: [id])
+  racunId Int
+}
+
+model Klijent {
+  id Int @default(autoincrement()) @id
+  naziv String
+  tipDjelatnosti String
+  oib Int
+  adresa String
+  grad String
+  postBroj String
+  drzava String
+  telefon String
+  fax String
+  mobitel String
+  email String
+  internetStranica String
+  iban String
+  createdAt DateTime @default(now())
 }

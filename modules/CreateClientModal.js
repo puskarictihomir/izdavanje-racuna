@@ -35,13 +35,44 @@ export default function CreateClientModal({ isOpen, onClose }) {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setClient((client) => ({
-      ...client,
-      [name]: value,
-    }));
+    if (name === "oib") {
+      setClient((client) => ({
+        ...client,
+        [name]: +value,
+      }));
+    } else {
+      setClient((client) => ({
+        ...client,
+        [name]: value,
+      }));
+    }
   };
 
-  const handleSubmit = () => {};
+  const handleSubmit = () => {
+    const klijent = {
+      naziv: client.naziv,
+      tipDjelatnosti: client.tipDjelatnosti,
+      oib: client.oib,
+      adresa: client.adresa,
+      grad: client.grad,
+      postBroj: client.postBroj,
+      drzava: client.drzava,
+      telefon: client.telefon,
+      fax: client.fax,
+      mobitel: client.mobitel,
+      email: client.email,
+      internetStranica: client.internetStranica,
+      iban: client.iban,
+    };
+
+    const requestOptions = {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(klijent),
+    };
+
+    fetch("api/client", requestOptions).then((response) => console.log("response", response));
+  };
 
   return (
     <>
