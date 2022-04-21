@@ -1,32 +1,30 @@
-import { Box, Table, Thead, Tbody, Tr, Th, Td, Heading, Button, Link, useDisclosure } from "@chakra-ui/react";
+import { useState, useEffect } from "react";
 
-import { PrismaClient } from "@prisma/client";
+import { Box, Table, Thead, Tbody, Tr, Th, Td, Heading, Button, useDisclosure } from "@chakra-ui/react";
 
 import CreateClientModal from "../modules/CreateClientModal";
 
-const prisma = new PrismaClient();
-
-export async function getServerSideProps() {
-  const racuni = await prisma.racun.findMany();
-
-  return {
-    props: {
-      racuni,
-    },
-  };
-}
-
 export default function ClientList(props) {
-  const racuni = props.racuni;
-
   const createClientDis = useDisclosure();
+
+  const [clients, setClients] = useState([]);
+
+  useEffect(() => {
+    fetch("api/client")
+      .then((res) => {
+        return res.json();
+      })
+      .then((data) => {
+        setClients(data.klijenti);
+      });
+  }, []);
 
   return (
     <Box m={10}>
       <Button mb={8} onClick={createClientDis.onOpen}>
         Novi klijent
       </Button>
-      <Heading mb={4}>Popis klijenata ({racuni.length})</Heading>
+      <Heading mb={4}>Popis klijenata</Heading>
       <Table variant="striped">
         <Thead>
           <Tr>
@@ -37,13 +35,15 @@ export default function ClientList(props) {
           </Tr>
         </Thead>
         <Tbody>
-          {racuni.map((r, i) => {
+          {clients?.map((c, i) => {
             return (
               <Tr key={i}>
-                <Td>{r.id}</Td>
-                <Td>{r.title}</Td>
-                <Td>{r.content}</Td>
-                <Td>OIB</Td>
+                <Td>{c.naziv}</Td>
+                <Td>{c.adresa}</Td>
+                <Td>
+                  {c.email}, {c.mobitel}
+                </Td>
+                <Td>{c.oib}</Td>
               </Tr>
             );
           })}
