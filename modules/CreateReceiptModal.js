@@ -21,21 +21,40 @@ import { AddIcon, CloseIcon } from "@chakra-ui/icons";
 
 import { useState } from "react";
 
-export default function CreateReceiptModal({ isOpen, onClose, edit = false }) {
+import dayjs from "dayjs";
+
+export default function CreateReceiptModal({
+  isOpen,
+  onClose,
+  edit = false,
+  recipeToEdit = null,
+  setRecipeToEdit = null,
+}) {
+  let datumRacuna = "";
+  let rokPlacanja = "";
+  let datumIsporuke = "";
+
+  if (recipeToEdit?.id) {
+    datumRacuna = new Date(recipeToEdit?.datumRacuna);
+    rokPlacanja = new Date(recipeToEdit?.rokPlacanja);
+    datumIsporuke = new Date(recipeToEdit?.datumIsporuke);
+  }
+
   const [receipt, setReceipt] = useState({
-    tipUsluge: "programiranje",
-    brojRacuna: "",
-    prikaziPorez: false,
-    kupac: "",
-    adresa: "",
-    OIB: "",
-    napomene: "",
-    datumRacuna: "",
-    rokPlacanja: "",
-    email: "",
-    internetStranica: "",
-    iban: "",
-    datumIsporuke: "",
+    tipUsluge: recipeToEdit?.tipUsluge || "programiranje",
+    brojRacuna: recipeToEdit?.brojRacuna || "",
+    prikaziPorez: recipeToEdit?.prikaziPorez || false,
+    kupac: recipeToEdit?.kupac || "",
+    adresa: recipeToEdit?.adresa || "",
+    OIB: recipeToEdit?.OIB || "",
+    napomene: recipeToEdit?.napomene || "",
+    datumRacuna: datumRacuna ? dayjs(datumRacuna).format("YYYY-MM-DD HH:mm:ss") : "",
+    rokPlacanja: rokPlacanja ? dayjs(rokPlacanja).format("YYYY-MM-DD") : "",
+    email: recipeToEdit?.email || "",
+    internetStranica: recipeToEdit?.internetStranica || "",
+    iban: recipeToEdit?.iban || "",
+    datumIsporuke: datumIsporuke ? dayjs(datumIsporuke).format("YYYY-MM-DD") : "",
+    napomene: recipeToEdit?.napomene || "",
   });
 
   const [stavkeRacuna, setStavkeRacuna] = useState([
@@ -93,6 +112,10 @@ export default function CreateReceiptModal({ isOpen, onClose, edit = false }) {
   };
 
   const handleSubmit = () => {
+    const datumRacuna = new Date(receipt.datumRacuna).getTime();
+    const rokPlacanja = new Date(receipt.rokPlacanja).getTime();
+    const datumIsporuke = new Date(receipt.datumIsporuke).getTime();
+
     const racun = {
       tipUsluge: receipt.tipUsluge,
       brojRacuna: receipt.brojRacuna,
@@ -101,28 +124,60 @@ export default function CreateReceiptModal({ isOpen, onClose, edit = false }) {
       adresa: receipt.adresa,
       OIB: +receipt.OIB,
       napomene: receipt.napomene,
-      datumRacuna: new Date(receipt.datumRacuna),
-      rokPlacanja: new Date(receipt.rokPlacanja),
+      datumRacuna,
+      rokPlacanja,
       email: receipt.email,
       internetStranica: receipt.internetStranica,
       iban: receipt.iban,
-      datumIsporuke: new Date(receipt.datumIsporuke),
+      datumIsporuke,
+      napomene: receipt.napomene,
     };
 
     const requestOptions = {
-      method: "POST",
+      method: edit ? "PATCH" : "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(racun),
     };
 
-    fetch("api/receipt", requestOptions).then((response) => console.log("response", response));
+    const stavkeRequestOptions = {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(stavkeRacuna),
+    };
+
+    /*  fetch(`api/receiptItem`, stavkeRequestOptions)
+      .then((res) => {
+        return res.json();
+      })
+      .then((data) => {
+        setStavkeRacuna(data.stavke);
+      }); */
+
+    if (edit) {
+      fetch(`api/receipt?id=${recipeToEdit.id}`, requestOptions)
+        .then((res) => {
+          return res.json();
+        })
+        .then((data) => {
+          setRecipeToEdit(data.azuriraniRacun);
+        });
+    } else {
+      fetch("api/receipt", requestOptions).then(() => {
+        setRecipeToEdit({});
+      });
+    }
+
+    onClose();
   };
 
-  const handleDeleteReceipt = () => {};
+  const closeModal = () => {
+    setRecipeToEdit(null);
+    onClose();
+  };
 
   return (
     <>
-      <Modal size="4xl" isOpen={isOpen} onClose={onClose}>
+      <Modal size="4xl" isOpen={isOpen} onClose={closeModal}>
         <ModalOverlay />
         <ModalContent>
           <ModalHeader>{edit ? "Uređivanje računa" : "Kreiraj račun"}</ModalHeader>
@@ -254,12 +309,7 @@ export default function CreateReceiptModal({ isOpen, onClose, edit = false }) {
               </Box>
               <Box mr={4}>
                 <FormLabel>Rok plaćanja</FormLabel>
-                <Input
-                  onChange={(e) => handleChange(e)}
-                  value={receipt.rokPlacanja}
-                  name="rokPlacanja"
-                  type="datetime-local"
-                />
+                <Input onChange={(e) => handleChange(e)} value={receipt.rokPlacanja} name="rokPlacanja" type="date" />
               </Box>
               <Box>
                 <FormLabel>Datum isporuke</FormLabel>
@@ -267,7 +317,7 @@ export default function CreateReceiptModal({ isOpen, onClose, edit = false }) {
                   onChange={(e) => handleChange(e)}
                   value={receipt.datumIsporuke}
                   name="datumIsporuke"
-                  type="datetime-local"
+                  type="date"
                 />
               </Box>
             </Grid>
@@ -280,12 +330,7 @@ export default function CreateReceiptModal({ isOpen, onClose, edit = false }) {
 
           <ModalFooter>
             {edit ? (
-              <Flex justifyContent="space-between">
-                <Button onClick={handleSubmit}>Spremi promjene</Button>
-                <Button colorScheme="red" onClick={handleDeleteReceipt}>
-                  Izbriši ovaj račun
-                </Button>
-              </Flex>
+              <Button onClick={handleSubmit}>Spremi promjene</Button>
             ) : (
               <Button onClick={handleSubmit}>Spremi</Button>
             )}
