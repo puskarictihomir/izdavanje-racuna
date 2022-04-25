@@ -20,12 +20,12 @@ model Racun {
   adresa String
   OIB Int
   napomene String
-  datumRacuna DateTime
-  rokPlacanja DateTime
+  datumRacuna Int
+  rokPlacanja Int
   email String
   internetStranica String
   iban String
-  datumIsporuke DateTime
+  datumIsporuke Int
   createdAt DateTime   @default(now())
   stavkeRacuna Stavka[]
 }
