@@ -16,7 +16,7 @@ import {
 
 import { useState } from "react";
 
-export default function CreateClientModal({ isOpen, onClose }) {
+export default function CreateClientModal({ isOpen, onClose, setClients }) {
   const [client, setClient] = useState({
     naziv: "",
     tipDjelatnosti: "bez oznake",
@@ -71,7 +71,11 @@ export default function CreateClientModal({ isOpen, onClose }) {
       body: JSON.stringify(klijent),
     };
 
-    fetch("api/client", requestOptions).then((response) => console.log("response", response));
+    fetch("api/client", requestOptions).then(() => {
+      setClients([]);
+    });
+
+    onClose();
   };
 
   return (

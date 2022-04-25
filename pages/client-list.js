@@ -17,7 +17,7 @@ export default function ClientList(props) {
       .then((data) => {
         setClients(data.klijenti);
       });
-  }, []);
+  }, [clients]);
 
   return (
     <Box m={10}>
@@ -50,7 +50,7 @@ export default function ClientList(props) {
         </Tbody>
       </Table>
       {createClientDis.isOpen && (
-        <CreateClientModal isOpen={createClientDis.isOpen} onClose={createClientDis.onClose} />
+        <CreateClientModal isOpen={createClientDis.isOpen} onClose={createClientDis.onClose} setClients={setClients} />
       )}
     </Box>
   );
