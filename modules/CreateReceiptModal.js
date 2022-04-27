@@ -57,14 +57,18 @@ export default function CreateReceiptModal({
     napomene: recipeToEdit?.napomene || "",
   });
 
-  const [stavkeRacuna, setStavkeRacuna] = useState([
-    {
-      opis: "",
-      mjera: "",
-      kolicina: 1,
-      cijena: 0,
-    },
-  ]);
+  const stavkeRacunaArray = recipeToEdit?.stavkeRacuna?.length
+    ? [...recipeToEdit.stavkeRacuna]
+    : [
+        {
+          opis: "",
+          mjera: "",
+          kolicina: 1,
+          cijena: 0,
+        },
+      ];
+
+  const [stavkeRacuna, setStavkeRacuna] = useState(stavkeRacunaArray);
 
   const handleChange = (e, i) => {
     const { name, value } = e.target;
@@ -158,6 +162,7 @@ export default function CreateReceiptModal({
         internetStranica: receipt.internetStranica,
         datumIsporuke,
         napomene: receipt.napomene,
+        stavkeRacuna,
       };
 
       const requestOptions = {
