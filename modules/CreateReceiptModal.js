@@ -41,6 +41,8 @@ export default function CreateReceiptModal({
     datumRacuna = new Date(recipeToEdit?.datumRacuna);
     rokPlacanja = new Date(recipeToEdit?.rokPlacanja);
     datumIsporuke = new Date(recipeToEdit?.datumIsporuke);
+
+    datumRacuna = dayjs(datumRacuna).format("YYYY-MM-DDTHH:mm");
   }
 
   const [receipt, setReceipt] = useState({
@@ -49,7 +51,7 @@ export default function CreateReceiptModal({
     adresa: recipeToEdit?.adresa || "",
     OIB: recipeToEdit?.OIB || "",
     napomene: recipeToEdit?.napomene || "",
-    datumRacuna: datumRacuna ? dayjs(datumRacuna).format("YYYY-MM-DD HH:mm") : "",
+    datumRacuna: datumRacuna ? datumRacuna : "",
     rokPlacanja: rokPlacanja ? dayjs(rokPlacanja).format("YYYY-MM-DD") : "",
     email: recipeToEdit?.email || "",
     internetStranica: recipeToEdit?.internetStranica || "",
