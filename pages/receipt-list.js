@@ -58,7 +58,6 @@ export default function ClientList(props) {
           {receipts?.map((r, i) => {
             const datumRacuna = new Date(r.datumRacuna);
             const rokPlacanja = new Date(r.rokPlacanja);
-            const datumIsporuke = new Date(r.datumIsporuke);
 
             return (
               <Tr key={i}>
