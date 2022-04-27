@@ -16,6 +16,7 @@ import {
   Text,
   IconButton,
   Flex,
+  useToast,
 } from "@chakra-ui/react";
 import { AddIcon, CloseIcon } from "@chakra-ui/icons";
 
@@ -30,6 +31,8 @@ export default function CreateReceiptModal({
   recipeToEdit = null,
   setRecipeToEdit = null,
 }) {
+  const toast = useToast();
+
   let datumRacuna = "";
   let rokPlacanja = "";
   let datumIsporuke = "";
@@ -41,18 +44,15 @@ export default function CreateReceiptModal({
   }
 
   const [receipt, setReceipt] = useState({
-    tipUsluge: recipeToEdit?.tipUsluge || "programiranje",
     brojRacuna: recipeToEdit?.brojRacuna || "",
-    prikaziPorez: recipeToEdit?.prikaziPorez || false,
     kupac: recipeToEdit?.kupac || "",
     adresa: recipeToEdit?.adresa || "",
     OIB: recipeToEdit?.OIB || "",
     napomene: recipeToEdit?.napomene || "",
-    datumRacuna: datumRacuna ? dayjs(datumRacuna).format("YYYY-MM-DD HH:mm:ss") : "",
+    datumRacuna: datumRacuna ? dayjs(datumRacuna).format("YYYY-MM-DD HH:mm") : "",
     rokPlacanja: rokPlacanja ? dayjs(rokPlacanja).format("YYYY-MM-DD") : "",
     email: recipeToEdit?.email || "",
     internetStranica: recipeToEdit?.internetStranica || "",
-    iban: recipeToEdit?.iban || "",
     datumIsporuke: datumIsporuke ? dayjs(datumIsporuke).format("YYYY-MM-DD") : "",
     napomene: recipeToEdit?.napomene || "",
   });
@@ -61,19 +61,30 @@ export default function CreateReceiptModal({
     {
       opis: "",
       mjera: "",
-      kolicina: "",
+      kolicina: 1,
       cijena: 0,
-      popust: "",
     },
   ]);
 
   const handleChange = (e, i) => {
     const { name, value } = e.target;
 
-    setReceipt((receipt) => ({
-      ...receipt,
-      [name]: value,
-    }));
+    if (name === "datumRacuna") {
+      const datumIsporuke = new Date(value).getTime();
+      const rokPlacanja = new Date(value).getTime() + 1209600000;
+
+      setReceipt((receipt) => ({
+        ...receipt,
+        [name]: value,
+        datumIsporuke: dayjs(datumIsporuke).format("YYYY-MM-DD"),
+        rokPlacanja: dayjs(rokPlacanja).format("YYYY-MM-DD"),
+      }));
+    } else {
+      setReceipt((receipt) => ({
+        ...receipt,
+        [name]: value,
+      }));
+    }
   };
 
   const handleStavkeRacunaChange = (e, i) => {
@@ -96,15 +107,15 @@ export default function CreateReceiptModal({
       {
         opis: "",
         mjera: "",
-        kolicina: "",
+        kolicina: 1,
         cijena: 0,
-        popust: "",
       },
     ]);
   };
 
   const ukupnaCijena = stavkeRacuna.reduce((accumulator, object) => {
-    return accumulator + object.cijena;
+    const cijena = object.kolicina * object.cijena;
+    return accumulator + cijena;
   }, 0);
 
   const handleRemoveStavkaRacuna = (i) => {
@@ -112,62 +123,65 @@ export default function CreateReceiptModal({
   };
 
   const handleSubmit = () => {
-    const datumRacuna = new Date(receipt.datumRacuna).getTime();
-    const rokPlacanja = new Date(receipt.rokPlacanja).getTime();
-    const datumIsporuke = new Date(receipt.datumIsporuke).getTime();
-
-    const racun = {
-      tipUsluge: receipt.tipUsluge,
-      brojRacuna: receipt.brojRacuna,
-      prikaziPorez: false,
-      kupac: receipt.kupac,
-      adresa: receipt.adresa,
-      OIB: +receipt.OIB,
-      napomene: receipt.napomene,
-      datumRacuna,
-      rokPlacanja,
-      email: receipt.email,
-      internetStranica: receipt.internetStranica,
-      iban: receipt.iban,
-      datumIsporuke,
-      napomene: receipt.napomene,
-    };
-
-    const requestOptions = {
-      method: edit ? "PATCH" : "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(racun),
-    };
-
-    const stavkeRequestOptions = {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(stavkeRacuna),
-    };
-
-    /*  fetch(`api/receiptItem`, stavkeRequestOptions)
-      .then((res) => {
-        return res.json();
-      })
-      .then((data) => {
-        setStavkeRacuna(data.stavke);
-      }); */
-
-    if (edit) {
-      fetch(`api/receipt?id=${recipeToEdit.id}`, requestOptions)
-        .then((res) => {
-          return res.json();
-        })
-        .then((data) => {
-          setRecipeToEdit(data.azuriraniRacun);
-        });
-    } else {
-      fetch("api/receipt", requestOptions).then(() => {
-        setRecipeToEdit({});
+    if (
+      !receipt.brojRacuna ||
+      !receipt.kupac ||
+      !receipt.adresa ||
+      !receipt.OIB ||
+      !receipt.datumRacuna ||
+      !receipt.rokPlacanja ||
+      !receipt.datumIsporuke
+    ) {
+      toast({
+        title: "Nedostaju podaci",
+        description: "",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
       });
-    }
 
-    onClose();
+      return;
+    } else {
+      const datumRacuna = new Date(receipt.datumRacuna).getTime();
+      const rokPlacanja = new Date(receipt.rokPlacanja).getTime();
+      const datumIsporuke = new Date(receipt.datumIsporuke).getTime();
+
+      const racun = {
+        brojRacuna: receipt.brojRacuna,
+        kupac: receipt.kupac,
+        adresa: receipt.adresa,
+        OIB: +receipt.OIB,
+        napomene: receipt.napomene,
+        datumRacuna,
+        rokPlacanja,
+        email: receipt.email,
+        internetStranica: receipt.internetStranica,
+        datumIsporuke,
+        napomene: receipt.napomene,
+      };
+
+      const requestOptions = {
+        method: edit ? "PATCH" : "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(racun),
+      };
+
+      if (edit) {
+        fetch(`api/receipt?id=${recipeToEdit.id}`, requestOptions)
+          .then((res) => {
+            return res.json();
+          })
+          .then((data) => {
+            setRecipeToEdit(data.azuriraniRacun);
+          });
+      } else {
+        fetch("api/receipt", requestOptions).then(() => {
+          setRecipeToEdit({});
+        });
+      }
+
+      onClose();
+    }
   };
 
   const closeModal = () => {
@@ -183,23 +197,10 @@ export default function CreateReceiptModal({
           <ModalHeader>{edit ? "Uređivanje računa" : "Kreiraj račun"}</ModalHeader>
           <ModalCloseButton />
           <ModalBody>
-            <Grid alignItems="center" mb={4} templateColumns="1fr 1fr 1fr">
-              <Box mr={4}>
-                <FormLabel>Tip usluge</FormLabel>
-                <Select onChange={(e) => handleChange(e)} value={receipt.tipUsluge} name="tipUsluge">
-                  <option value="programiranje">Programiranje</option>
-                  <option value="ostalo">Ostalo</option>
-                  <option value="josNesto">josNesto</option>
-                </Select>
-              </Box>
+            <Grid alignItems="center" mb={4} templateColumns="1fr 1fr">
               <Box mr={4}>
                 <FormLabel>Broj računa</FormLabel>
                 <Input onChange={(e) => handleChange(e)} value={receipt.brojRacuna} name="brojRacuna" />
-              </Box>
-              <Box>
-                <Checkbox mt={6} value={receipt.prikaziPorez}>
-                  Prikaži porez?
-                </Checkbox>
               </Box>
             </Grid>
             <Grid mb={4} templateColumns="2fr 3fr 1fr">
@@ -240,7 +241,7 @@ export default function CreateReceiptModal({
                         name="opis"
                       />
                     </Box>
-                    <Grid mb={4} templateColumns="1fr 1fr 1fr 1fr">
+                    <Grid mb={4} templateColumns="1fr 1fr 1fr">
                       <Box mr={4}>
                         <FormLabel>Jed. mjera</FormLabel>
                         <Select
@@ -248,9 +249,10 @@ export default function CreateReceiptModal({
                           value={stavkeRacuna[i].mjera}
                           name="mjera"
                         >
+                          <option value="sat">sat</option>
+                          <option value="kom">kom</option>
+                          <option value="dan">dan</option>
                           <option value="god">god</option>
-                          <option value="ostalo">Ostalo</option>
-                          <option value="josNesto">josNesto</option>
                         </Select>
                       </Box>
                       <Box mr={4}>
@@ -269,14 +271,6 @@ export default function CreateReceiptModal({
                           value={stavkeRacuna[i].cijena}
                           name="cijena"
                           type="number"
-                        />
-                      </Box>
-                      <Box>
-                        <FormLabel>Popust</FormLabel>
-                        <Input
-                          onChange={(e) => handleStavkeRacunaChange(e, i)}
-                          value={stavkeRacuna[i].popust}
-                          name="popust"
                         />
                       </Box>
                     </Grid>
@@ -318,6 +312,7 @@ export default function CreateReceiptModal({
                   value={receipt.datumIsporuke}
                   name="datumIsporuke"
                   type="date"
+                  isDisabled={true}
                 />
               </Box>
             </Grid>
