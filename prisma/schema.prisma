@@ -13,9 +13,7 @@ datasource db {
 
 model Racun {
   id Int @default(autoincrement()) @id
-  tipUsluge String
   brojRacuna String
-  prikaziPorez Boolean
   kupac String
   adresa String
   OIB Int
@@ -24,7 +22,6 @@ model Racun {
   rokPlacanja Int
   email String
   internetStranica String
-  iban String
   datumIsporuke Int
   createdAt DateTime   @default(now())
   stavkeRacuna Stavka[]
@@ -36,7 +33,6 @@ model Stavka {
   mjera String
   kolicina Int
   cijena Int
-  popust String
   createdAt DateTime @default(now())
   racun Racun @relation(fields: [racunId], references: [id])
   racunId Int
