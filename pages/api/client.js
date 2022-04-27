@@ -13,5 +13,13 @@ export default async function handler(req, res) {
     const klijenti = await prisma.klijent.findMany();
 
     res.status(200).json({ klijenti });
+  } else if (req.method === "DELETE") {
+    const obrisaniKlijent = await prisma.klijent.delete({
+      where: {
+        id: +req.query.id,
+      },
+    });
+
+    res.status(200).json({ obrisaniKlijent });
   }
 }

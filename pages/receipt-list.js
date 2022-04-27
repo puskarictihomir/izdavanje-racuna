@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 
 import { Box, Table, Thead, Tbody, Tr, Th, Td, Heading, Button, useDisclosure, IconButton } from "@chakra-ui/react";
-import { EditIcon } from "@chakra-ui/icons";
+import { EditIcon, DeleteIcon } from "@chakra-ui/icons";
 
 import CreateReceiptModal from "../modules/CreateReceiptModal";
 
@@ -25,6 +25,23 @@ export default function ClientList(props) {
       });
 
     editReceiptDis.onOpen();
+  };
+
+  const handleDeleteReceipt = (id) => {
+    console.log("id", id);
+
+    const requestOptions = {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+    };
+
+    fetch(`api/receipt?id=${id}`, requestOptions)
+      .then((res) => {
+        return res.json();
+      })
+      .then((data) => {
+        setRecipeToEdit({});
+      });
   };
 
   useEffect(() => {
@@ -68,6 +85,12 @@ export default function ClientList(props) {
                 <Td>{dayjs(rokPlacanja).format("DD/MM/YYYY")}</Td>
                 <Td>
                   <IconButton mr={2} icon={<EditIcon />} colorScheme="blue" onClick={() => handleEditReceipt(r.id)} />
+                  <IconButton
+                    mr={2}
+                    icon={<DeleteIcon />}
+                    colorScheme="red"
+                    onClick={() => handleDeleteReceipt(r.id)}
+                  />
                 </Td>
               </Tr>
             );
