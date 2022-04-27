@@ -8,14 +8,20 @@ export default async function handler(req, res) {
       where: {
         id: +req.query.id,
       },
+      include: {
+        stavkeRacuna: true,
+      },
     });
 
     res.status(200).json({ racun });
   } else if (req.method === "POST") {
-    console.log("req.body from racun", req.body);
-
     const racun = await prisma.racun.create({
-      data: { ...req.body },
+      data: {
+        ...req.body,
+        stavkeRacuna: {
+          create: [...req.body.stavkeRacuna],
+        },
+      },
     });
 
     res.status(200).send({ racun });
