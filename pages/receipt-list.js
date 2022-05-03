@@ -5,11 +5,14 @@ import { EditIcon, DeleteIcon } from "@chakra-ui/icons";
 
 import CreateReceiptModal from "../modules/CreateReceiptModal";
 
+import DeleteModal from "../components/DeleteModal";
+
 import dayjs from "dayjs";
 
 export default function ClientList(props) {
   const createReceiptDis = useDisclosure();
   const editReceiptDis = useDisclosure();
+  const deleteReceiptDis = useDisclosure();
 
   const [receipts, setReceipts] = useState(null);
 
@@ -27,15 +30,18 @@ export default function ClientList(props) {
     editReceiptDis.onOpen();
   };
 
-  const handleDeleteReceipt = (id) => {
-    console.log("id", id);
+  const handleDeleteClick = (id) => {
+    setRecipeToEdit(id);
+    deleteReceiptDis.onOpen();
+  };
 
+  const handleDeleteReceipt = () => {
     const requestOptions = {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
     };
 
-    fetch(`api/receipt?id=${id}`, requestOptions)
+    fetch(`api/receipt?id=${recipeToEdit}`, requestOptions)
       .then((res) => {
         return res.json();
       })
@@ -85,12 +91,7 @@ export default function ClientList(props) {
                 <Td>{dayjs(rokPlacanja).format("DD/MM/YYYY")}</Td>
                 <Td>
                   <IconButton mr={2} icon={<EditIcon />} colorScheme="blue" onClick={() => handleEditReceipt(r.id)} />
-                  <IconButton
-                    mr={2}
-                    icon={<DeleteIcon />}
-                    colorScheme="red"
-                    onClick={() => handleDeleteReceipt(r.id)}
-                  />
+                  <IconButton mr={2} icon={<DeleteIcon />} colorScheme="red" onClick={() => handleDeleteClick(r.id)} />
                 </Td>
               </Tr>
             );
@@ -112,6 +113,14 @@ export default function ClientList(props) {
           recipeToEdit={recipeToEdit}
           edit={true}
           setRecipeToEdit={setRecipeToEdit}
+        />
+      )}
+
+      {deleteReceiptDis.isOpen && (
+        <DeleteModal
+          isOpen={deleteReceiptDis.isOpen}
+          onClose={deleteReceiptDis.onClose}
+          handleRemove={handleDeleteReceipt}
         />
       )}
     </Box>

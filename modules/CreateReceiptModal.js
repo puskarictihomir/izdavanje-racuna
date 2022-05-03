@@ -59,12 +59,12 @@ export default function CreateReceiptModal({
     napomene: recipeToEdit?.napomene || "",
   });
 
-  const stavkeRacunaArray = recipeToEdit?.stavkeRacuna?.length
+  const stavkeRacunaArray = recipeToEdit?.stavkeRacuna
     ? [...recipeToEdit.stavkeRacuna]
     : [
         {
           opis: "",
-          mjera: "",
+          mjera: "sat",
           kolicina: 1,
           cijena: 0,
         },
@@ -112,7 +112,7 @@ export default function CreateReceiptModal({
       ...stavkeRacuna,
       {
         opis: "",
-        mjera: "",
+        mjera: "sat",
         kolicina: 1,
         cijena: 0,
       },

@@ -30,14 +30,9 @@ export default async function handler(req, res) {
 
     res.status(200).json({ racuni });
   } else if (req.method === "PATCH") {
-    await prisma.racun.update({
+    await prisma.stavka.deleteMany({
       where: {
-        id: +req.query.id,
-      },
-      data: {
-        stavkeRacuna: {
-          set: [],
-        },
+        racunId: +req.query.id,
       },
     });
 
@@ -50,11 +45,11 @@ export default async function handler(req, res) {
       };
     });
 
-    const azuriraniRacun = await prisma.racun.upsert({
+    const azuriraniRacun = await prisma.racun.update({
       where: {
         id: +req.query.id,
       },
-      update: {
+      data: {
         brojRacuna: req.body.brojRacuna,
         kupac: req.body.kupac,
         adresa: req.body.adresa,
@@ -65,15 +60,20 @@ export default async function handler(req, res) {
         email: req.body.email,
         internetStranica: req.body.internetStranica,
         datumIsporuke: req.body.datumIsporuke,
-      },
-      create: {
-        stavkeRacuna: [...stavkeRacunaArray],
+        stavkeRacuna: {
+          create: [...stavkeRacunaArray],
+        },
       },
     });
 
     res.status(200).json({ azuriraniRacun });
   } else if (req.method === "DELETE") {
-    console.log("req.query.id", req.query.id);
+    await prisma.stavka.deleteMany({
+      where: {
+        racunId: +req.query.id,
+      },
+    });
+
     const obrisaniRacun = await prisma.racun.delete({
       where: {
         id: +req.query.id,
