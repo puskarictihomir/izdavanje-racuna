@@ -1,13 +1,39 @@
 import { useState, useEffect } from "react";
 
-import { Box, Table, Thead, Tbody, Tr, Th, Td, Heading, Button, useDisclosure } from "@chakra-ui/react";
+import { Box, Table, Thead, Tbody, Tr, Th, Td, Heading, Button, useDisclosure, IconButton } from "@chakra-ui/react";
+import { DeleteIcon } from "@chakra-ui/icons";
 
 import CreateClientModal from "../modules/CreateClientModal";
 
+import DeleteModal from "../components/DeleteModal";
+
 export default function ClientList(props) {
   const createClientDis = useDisclosure();
+  const deleteClientDis = useDisclosure();
 
   const [clients, setClients] = useState([]);
+
+  const [clientId, setClientId] = useState(null);
+
+  const handleDeleteClick = (id) => {
+    setClientId(id);
+    deleteClientDis.onOpen();
+  };
+
+  const handleDeleteClient = () => {
+    const requestOptions = {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+    };
+
+    fetch(`api/client?id=${clientId}`, requestOptions)
+      .then((res) => {
+        return res.json();
+      })
+      .then((data) => {
+        setClientId(null);
+      });
+  };
 
   useEffect(() => {
     fetch("api/client")
@@ -17,7 +43,7 @@ export default function ClientList(props) {
       .then((data) => {
         setClients(data.klijenti);
       });
-  }, [clients]);
+  }, [clients, clientId]);
 
   return (
     <Box m={10}>
@@ -32,6 +58,7 @@ export default function ClientList(props) {
             <Th>Adresa</Th>
             <Th>Kontakt</Th>
             <Th>OIB</Th>
+            <Th>Opcije</Th>
           </Tr>
         </Thead>
         <Tbody>
@@ -44,6 +71,9 @@ export default function ClientList(props) {
                   {c.email}, {c.mobitel}
                 </Td>
                 <Td>{c.oib}</Td>
+                <Td>
+                  <IconButton mr={2} icon={<DeleteIcon />} colorScheme="red" onClick={() => handleDeleteClick(c.id)} />
+                </Td>
               </Tr>
             );
           })}
@@ -51,6 +81,14 @@ export default function ClientList(props) {
       </Table>
       {createClientDis.isOpen && (
         <CreateClientModal isOpen={createClientDis.isOpen} onClose={createClientDis.onClose} setClients={setClients} />
+      )}
+
+      {deleteClientDis.isOpen && (
+        <DeleteModal
+          isOpen={deleteClientDis.isOpen}
+          onClose={deleteClientDis.onClose}
+          handleRemove={handleDeleteClient}
+        />
       )}
     </Box>
   );
